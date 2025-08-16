@@ -1,0 +1,9 @@
+Time
+Access Camera
+Make calls
+Lock Screen (Need to work on this)
+Open Other Apps
+Flash Light
+------------------
+Set Alarm
+Water Remainder

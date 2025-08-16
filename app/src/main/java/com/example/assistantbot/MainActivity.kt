@@ -10,17 +10,20 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import java.util.Calendar
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tvResult: TextView
     private lateinit var btnSpeak: Button
     private lateinit var tts: TextToSpeech
 
+    @Suppress("PrivatePropertyName")
     private val REQUEST_CODE_SPEECH = 100
+    @Suppress("PrivatePropertyName")
     private val REQUEST_PERMISSION_CODE = 200
+    private lateinit var commandProcessor: CommandProcessor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts.language = Locale.US
+                commandProcessor = CommandProcessor(this, tts, this)
             }
         }
 
@@ -66,29 +70,8 @@ class MainActivity : AppCompatActivity() {
             val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
             val spokenText = result?.get(0) ?: ""
             tvResult.text = spokenText
-            processCommand(spokenText.lowercase())
+            commandProcessor.processCommand(spokenText.lowercase())
         }
-    }
-
-    private fun processCommand(command: String) {
-        when {
-            "time" in command -> {
-                val time = Calendar.getInstance().time.toString()
-                speak("The current time is $time")
-            }
-            "open camera" in command -> {
-                val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-                startActivity(intent)
-                speak("Opening camera")
-            }
-            else -> {
-                speak("You said: $command")
-            }
-        }
-    }
-
-    private fun speak(text: String) {
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
     override fun onDestroy() {
