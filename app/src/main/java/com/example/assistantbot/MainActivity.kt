@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var logTextView: TextView
 
+    private var modelFolder = "vosk-model-small-en-us-0.15"
+
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
         private const val TAG = "VoskRecognizer"
@@ -68,8 +70,8 @@ class MainActivity : AppCompatActivity() {
                 LibVosk.setLogLevel(LogLevel.INFO)
 
                 // Copy model from assets folder to internal storage
-                val modelPath = "${filesDir.absolutePath}/model"
-                copyAssetsFolder(this@MainActivity, "model", modelPath)
+                val modelPath = "${filesDir.absolutePath}/model/${modelFolder}"
+                copyAssetsFolder(this@MainActivity, "model/${modelFolder}", modelPath)
 
                 // Now load the model from the internal storage path
                 try {
