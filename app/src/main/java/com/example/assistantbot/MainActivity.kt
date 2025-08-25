@@ -1,5 +1,8 @@
 package com.example.assistantbot
 
+import ai.picovoice.porcupine.Porcupine
+import ai.picovoice.porcupine.PorcupineManager
+import ai.picovoice.porcupine.PorcupineManagerCallback
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -30,10 +33,13 @@ class MainActivity : AppCompatActivity() {
     private var recognizer: Recognizer? = null
     private var model: Model? = null
     private var audioRecord: AudioRecord? = null
-
     private lateinit var logTextView: TextView
-
     private var modelFolder = "vosk-model-small-en-us-0.15"
+
+    private val accessKey = "XCVKD0+r1GJ445holBESsdOfkk9LG6coNVeIBvhYBWqHc4OryWkvYQ=="
+    private val keywordFileName = "hey_jarvis.ppn"
+    private lateinit var porcupineManager: PorcupineManager
+    private var keyword: Porcupine.BuiltInKeyword = Porcupine.BuiltInKeyword.BUMBLEBEE
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
@@ -41,9 +47,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        try{
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.activity_main)
 
+            Log.i(TAG,"Step-1")
+
+            porcupineManager = PorcupineManager.Builder()
+                .setAccessKey(accessKey)
+                .setKeyword(keyword)
+                .setSensitivity(0.7f)
+                .build(this@MainActivity, PorcupineManagerCallback { keywordIndex ->
+                    Log.i(TAG,"Step-3")
+                    validatePermissions()
+                })
+
+            porcupineManager.start()
+
+            Log.i(TAG,"Step-2")
+        }catch (e: Exception){
+            Log.e(TAG, "Error during recognition ${e}")
+        }
+    }
+
+    //Use if need to stop the PorcupineManager
+    override fun onDestroy() {
+        porcupineManager.stop()
+        porcupineManager.delete()
+        super.onDestroy()
+    }
+
+    private fun validatePermissions() {
         logTextView = findViewById(R.id.logTextView)
 
         Log.i(TAG, "Application started")
@@ -114,6 +148,10 @@ class MainActivity : AppCompatActivity() {
                                        logTextView.text = text
                                    }
                                    Log.i(TAG, "Result: $text")
+                                   if(text == "close")
+                                   {
+                                       onDestroy()
+                                   }
                                }
                             }
                         }
