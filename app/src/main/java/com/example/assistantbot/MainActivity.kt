@@ -1,12 +1,13 @@
 package com.example.assistantbot
 
+import ai.picovoice.porcupine.Porcupine
+import ai.picovoice.porcupine.PorcupineManager
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
-import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -15,14 +16,17 @@ import java.util.Locale
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var tvResult: TextView
-    private lateinit var btnSpeak: Button
-    private lateinit var tts: TextToSpeech
-
     @Suppress("PrivatePropertyName")
     private val REQUEST_CODE_SPEECH = 100
     @Suppress("PrivatePropertyName")
     private val REQUEST_PERMISSION_CODE = 200
+
+    private lateinit var tvResult: TextView
+    private lateinit var tts: TextToSpeech
+    private val accessKey = "XCVKD0+r1GJ445holBESsdOfkk9LG6coNVeIBvhYBWqHc4OryWkvYQ=="
+    private lateinit var porcupineManager: PorcupineManager
+    private var keyword: Porcupine.BuiltInKeyword = Porcupine.BuiltInKeyword.BUMBLEBEE
+
     private lateinit var commandProcessor: CommandProcessor
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tvResult = findViewById(R.id.tvResult)
-        btnSpeak = findViewById(R.id.btnSpeak)
 
         // Request microphone permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
@@ -50,10 +53,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // When button is clicked, start listening
-        btnSpeak.setOnClickListener {
-            startSpeechToText()
-        }
+        porcupineManager = PorcupineManager.Builder()
+            .setAccessKey(accessKey)
+            .setKeyword(keyword)
+            .setSensitivity(0.7f)
+            .build(this@MainActivity) { keywordIndex ->
+                startSpeechToText()
+            }
+
+        porcupineManager.start()
+
     }
 
     private fun startSpeechToText() {
@@ -77,6 +86,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (tts.isSpeaking) tts.stop()
         tts.shutdown()
+        porcupineManager.stop()
+        porcupineManager.delete()
         super.onDestroy()
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AssistantBot</string>
+    <string name="assistant_bot">Assistant Bot</string>
 </resources>
